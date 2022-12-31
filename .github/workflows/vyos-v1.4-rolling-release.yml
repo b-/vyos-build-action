@@ -39,32 +39,27 @@ jobs:
       id: branch-name
       uses: tj-actions/branch-names@v6
 
-    - uses: haya14busa/action-cond@v1
+    - name: Generate version string
+      uses: haya14busa/action-cond@v1
       id: branch-filename
       with:
         cond: ${{ steps.branch-name.outputs.is_default == 'true' }}
         if_true: "${{ env.VERSION }}"
         if_false: "${{ env.VERSION }}_${{  steps.branch-name.outputs.current_branch  }}"
-    - run: |
-        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
-        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
-
-    
     - name: Set variables
       run: |
+        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
         export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
         export VERSION_L=${VERSION_BRANCH}-latest
         echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
         echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
         echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
         echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        
-    - name: Not running on the default branch?
-      if: ${{  steps.branch-name.outputs.is_default == 'true'  }}
-      run: |
-        echo "Running on branch: ${{ steps.branch-name.outputs.current_branch }}"
-        
-      # Outputs: "Running on default: main".
+        echo -----
+        echo Now, my variables are:
+        cat $GITHUB_ENV
+        echo -----
       
     - name: Checkout vyos-build repo
       uses: actions/checkout@v3
