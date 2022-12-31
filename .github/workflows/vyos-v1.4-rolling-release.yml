@@ -35,11 +35,9 @@ jobs:
       with:
         path: vyos-build-action
         
-    - name: Start SSH session
-      uses: luchihoratiu/debug-via-ssh@main
-      with:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
         
     - name: Prepare #from vyos-tailscale/Makefile:prepare
 
