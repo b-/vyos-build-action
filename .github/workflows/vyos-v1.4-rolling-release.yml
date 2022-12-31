@@ -137,7 +137,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{  env.VERSION_BRANCH  }}
+        tag_name: v${{  env.VERSION_T  }}
         files: "/tmp/iso/*"
         
 #        vyos-build/build/${{ env.ISO_T }}
