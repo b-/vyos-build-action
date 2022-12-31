@@ -34,6 +34,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: vyos-build-action
+        submodules: 'true'
         
 
     - name: Setup tmate session
@@ -57,7 +58,7 @@ jobs:
         echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
       
     - name: Build ISO
-      working-directory: vyos-build-action/vyos-build
+      working-directory: vyos-build
       run: 
         sudo ./build-vyos-image iso 
           --architecture $ARCHITECTURE
