@@ -58,7 +58,7 @@ jobs:
             --version 1.4-rolling-`date +%Y%m%d%H%M`_b-
         
       - name: Symlink latest
-          ln -s build/vyos-${{ env.VERSION }}-*.iso build/vyos-${{ env.VERSION }}-latest.iso
+        run: ln -s build/vyos-${{ env.VERSION }}-*.iso build/vyos-${{ env.VERSION }}-latest.iso
           
           #TODO: add minisign
 
