@@ -26,56 +26,62 @@ jobs:
       options: --workdir /vyos --privileged
 
     steps:
-      - name: Clone source code
-        run: |
-          git clone -b $BRANCH --single-branch $GIT_CLONE_URL
-          git clone --single-branch --recursive $THIS_REPO
-
-      - name: Prepare #from vyos-tailscale/Makefile:prepare
-        run: |
-          cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
-
-          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
-          cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
-
-          mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
-          cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
-          
-          echo "VERSION_T=$VERSION-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-          echo "VERSION_L=$VERSION-latest" >> $GITHUB_ENV
-          echo "ISO_T=vyos-${VERSION_T}.iso" >> $GITHUB_ENV
-          echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
+    - name: Checkout vyos-build repo
+      uses: actions/checkout@v3
+      with:
+        repository: vyos/vyos-build
+        path: vyos-build
+        
+    - name: Checkout vyos-build-action repo
+      uses: actions/checkout@v3
+      with:
+        path: vyos-build-action
       
-      - name: Build ISO
-        working-directory: ./vyos-build
-        run: 
-          sudo ./build-vyos-image iso 
-            --architecture $ARCHITECTURE
-            --build-by $BUILD_BY 
-            --build-type $BUILD_TYPE 
-            --version $VERSION_T
-            --custom-apt-key /tmp/tailscale.gpg 
-            --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
-            --custom-package "tailscale" 
-            --custom-package "git"
-            --build-comment "bri's custom VyOS 1.4-rolling"
+    - name: Prepare #from vyos-tailscale/Makefile:prepare
+      run: |
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
+
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
+
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
+        cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
+          
+        echo "VERSION_T=$VERSION-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+        echo "VERSION_L=$VERSION-latest" >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}.iso" >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
+      
+    - name: Build ISO
+      working-directory: ./vyos-build
+      run: 
+        sudo ./build-vyos-image iso 
+          --architecture $ARCHITECTURE
+          --build-by $BUILD_BY 
+          --build-type $BUILD_TYPE 
+          --version $VERSION_T
+          --custom-apt-key /tmp/tailscale.gpg 
+          --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
+          --custom-package "tailscale" 
+          --custom-package "git"
+          --build-comment "bri's custom VyOS 1.4-rolling"
             
-      - name: Symlink latest
-        working-directory: ./vyos-build/build
-        run: ln -s $ISO_T $ISO_L
+    - name: Symlink latest
+      working-directory: ./vyos-build/build
+      run: ln -s $ISO_T $ISO_L
 
           #TODO: add minisign
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ${{ env.ISO_T }}
-            ${{ env.ISO_L }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{ env.ISO_T }}
+          ${{ env.ISO_L }}
             
             
   delete_old_workflow_runs:
-    needs: release
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
