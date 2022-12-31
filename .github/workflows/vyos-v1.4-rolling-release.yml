@@ -68,8 +68,8 @@ jobs:
         export VERSION_L=${VERSION}-latest
         echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
         echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
-        echo "ISO_T=vyos-${VERSION_T}.iso" >> $GITHUB_ENV
-        echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-$(ARCHITECTURE).iso" >> $GITHUB_ENV
       
     - name: Build ISO
       working-directory: vyos-build
