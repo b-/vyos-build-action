@@ -88,10 +88,12 @@ jobs:
     - name: move into position 
       working-directory: ./vyos-build/build
       run: |
+        pwd
+        ls
         mkdir -p /tmp/iso
-        ln -s $ISO_T /tmp/iso/$ISO_T
+        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_T
         file /tmp/iso/$ISO_T
-        ln -s $ISO_T /tmp/iso/$ISO_L
+        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_L
         file /tmp/iso/$ISO_T
         
 
