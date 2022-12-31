@@ -99,6 +99,7 @@ jobs:
         content: |
           Host *
             IdentityFile /config/user-data/id_ed25519
+            
     - name: Build ISO
       working-directory: vyos-build
       run: 
