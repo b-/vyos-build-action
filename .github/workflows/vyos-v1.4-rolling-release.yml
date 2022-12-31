@@ -35,6 +35,37 @@ jobs:
       options: --workdir /vyos --privileged
 
     steps:
+    - name: Get branch name
+      id: branch-name
+      uses: tj-actions/branch-names@v6
+
+    - uses: haya14busa/action-cond@v1
+      id: branch-filename
+      with:
+        cond: ${{ steps.branch-name.outputs.is_default == 'true' }}
+        if_true: "${{ env.VERSION }}"
+        if_false: "${{ env.VERSION }}_${{  steps.branch-name.outputs.current_branch  }}"
+    - run: |
+        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
+
+    
+    - name: Set variables
+      run: |
+        export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
+        export VERSION_L=${VERSION_BRANCH}-latest
+        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        
+    - name: Not running on the default branch?
+      if: ${{  steps.branch-name.outputs.is_default == 'true'  }}
+      run: |
+        echo "Running on branch: ${{ steps.branch-name.outputs.current_branch }}"
+        
+      # Outputs: "Running on default: main".
+      
     - name: Checkout vyos-build repo
       uses: actions/checkout@v3
       with:
@@ -64,12 +95,6 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
-        export VERSION_T=${VERSION}-$(date +%Y%m%d%H%M)
-        export VERSION_L=${VERSION}-latest
-        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
-        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
-        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        echo "ISO_L=vyos-${VERSION_L}-$(ARCHITECTURE).iso" >> $GITHUB_ENV
       
     - name: Build ISO
       working-directory: vyos-build
@@ -105,18 +130,20 @@ jobs:
         
 
     
-#    - name: Release
-#      uses: softprops/action-gh-release@v1
-#      with:
-#        tag_name: v${{  env.VERSION  }}
-#        files: |
-#          vyos-build/build/${{ env.ISO_T }}
-#          vyos-build/build/${{ env.ISO_L }}
     - name: Release
-      uses: ncipollo/release-action@v1
+      uses: softprops/action-gh-release@v1
       with:
-        tag: ${{ env.ISO_T }}
-        artifacts: "/tmp/iso/*"
+        tag_name: v${{  env.VERSION_BRANCH  }}
+        files: "/tmp/iso/*"
+        
+#        vyos-build/build/${{ env.ISO_T }}
+#        vyos-build/build/${{ env.ISO_L }}
+
+#    - name: Release
+#      uses: ncipollo/release-action@v1
+#      with:
+#        tag: ${{ env.ISO_T }}
+#        artifacts: "/tmp/iso/*"
             
             
   delete_old_workflow_runs:
