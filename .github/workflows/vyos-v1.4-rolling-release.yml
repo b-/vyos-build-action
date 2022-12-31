@@ -45,6 +45,7 @@ jobs:
         working-directory: ./vyos-build
         run: 
           sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M) --custom-apt-key /tmp/tailscale.gpg --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" --custom-package "tailscale" --build-comment "VyOS with Tailscale" --build-type release --version 1.4-rolling-`date +%Y%m%d%H%M`_tailscale
+          ln -s build/vyos-${{ env.VERSION }}-*.iso build/vyos-${{ env.VERSION }}-latest.iso
           
           #TODO: add minisign
 
