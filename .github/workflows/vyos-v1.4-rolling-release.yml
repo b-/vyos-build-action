@@ -85,9 +85,15 @@ jobs:
           --custom-package "git"
           --build-comment "bri's custom VyOS 1.4-rolling"
             
-    - name: Symlink latest
+    - name: move into position 
       working-directory: ./vyos-build/build
-      run: ln -s $ISO_T $ISO_L
+      run: |
+        mkdir -p /tmp/iso
+        ln -s $ISO_T /tmp/iso/$ISO_T
+        file /tmp/iso/$ISO_T
+        ln -s $ISO_T /tmp/iso/$ISO_L
+        file /tmp/iso/$ISO_T
+        
 
           #TODO: add minisign
 
@@ -96,13 +102,18 @@ jobs:
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
         
 
+    
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      with:
+#        tag_name: v${{  env.VERSION  }}
+#        files: |
+#          vyos-build/build/${{ env.ISO_T }}
+#          vyos-build/build/${{ env.ISO_L }}
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        tag_name: v${{  env.VERSION  }}
-        files: |
-          vyos-build/build/${{ env.ISO_T }}
-          vyos-build/build/${{ env.ISO_L }}
+        artifacts: "/tmp/iso/*"
             
             
   delete_old_workflow_runs:
