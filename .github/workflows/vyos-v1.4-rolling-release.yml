@@ -80,6 +80,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: v${{  env.VERSION  }}
         files: |
           ${{ env.ISO_T }}
           ${{ env.ISO_L }}
