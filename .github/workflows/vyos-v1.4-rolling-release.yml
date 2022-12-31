@@ -33,7 +33,7 @@ jobs:
 
       - name: Prepare #from vyos-tailscale/Makefile:prepare
         run: |
-          cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg vyos-build/tailscale.gpg
+          cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
           mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
           cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
@@ -43,11 +43,8 @@ jobs:
       
       - name: Build ISO
         working-directory: ./vyos-build
-        run: |
-          pwd
-          ls
-          ls ..
-          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M) --custom-apt-key ../vyos-build-action/tailscale/tailscale.gpg --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" --custom-package "tailscale" --build-comment "VyOS with Tailscale" --build-type release --version 1.4-rolling-`date +%Y%m%d%H%M`
+        run: 
+          sudo ./build-vyos-image iso --architecture $ARCHITECTURE --build-by $BUILD_BY --build-type $BUILD_TYPE --version $VERSION-$(date +%Y%m%d%H%M) --custom-apt-key /tmp/tailscale.gpg --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" --custom-package "tailscale" --build-comment "VyOS with Tailscale" --build-type release --version 1.4-rolling-`date +%Y%m%d%H%M`
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
