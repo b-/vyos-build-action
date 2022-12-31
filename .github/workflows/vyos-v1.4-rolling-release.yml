@@ -9,8 +9,6 @@ on:
   
 
 env:
-  GIT_CLONE_URL: https://github.com/vyos/vyos-build
-  THIS_REPO: https://github.com/b-/vyos-build-action
   BRANCH: current
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
@@ -30,14 +28,15 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: vyos/vyos-build
-        path: ../vyos-build
+        path: vyos-build
         
     - name: Checkout vyos-build-action repo
       uses: actions/checkout@v3
       with:
-        path: ../vyos-build-action
+        path: vyos-build-action
       
     - name: Prepare #from vyos-tailscale/Makefile:prepare
+      working-directory: vyos-build-action
       run: |
         cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
@@ -53,7 +52,7 @@ jobs:
         echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
       
     - name: Build ISO
-      working-directory: ./vyos-build
+      working-directory: vyos-build-action/vyos-build
       run: 
         sudo ./build-vyos-image iso 
           --architecture $ARCHITECTURE
