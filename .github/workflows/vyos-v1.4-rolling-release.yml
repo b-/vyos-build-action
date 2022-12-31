@@ -59,8 +59,10 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
-        echo "VERSION_T=$VERSION-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-        echo "VERSION_L=$VERSION-latest" >> $GITHUB_ENV
+        export VERSION_T=${VERSION}-$(date +%Y%m%d%H%M)
+        export VERSION_L=${VERSION}-latest
+        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
         echo "ISO_T=vyos-${VERSION_T}.iso" >> $GITHUB_ENV
         echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
       
