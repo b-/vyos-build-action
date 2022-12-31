@@ -43,13 +43,13 @@ jobs:
 
       #working-directory: vyos-build-action/vyos-build-action
       run: |
-        cp ../vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
-        cp ../vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
+        cp vyos-build-action/vyos-tailscale/tailscale/tailscaled vyos-build/data/live-build-config/includes.chroot/etc/default/tailscaled
 
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
-        cp ../vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
+        cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
         echo "VERSION_T=$VERSION-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
         echo "VERSION_L=$VERSION-latest" >> $GITHUB_ENV
