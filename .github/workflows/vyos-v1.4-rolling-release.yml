@@ -43,13 +43,6 @@ jobs:
 
       #working-directory: vyos-build-action/vyos-build-action
       run: |
-        echo -----prepare-----
-        echo pwd is $(pwd)
-        echo -----
-        find / -maxdepth 3
-        echo -----
-        set
-        echo -----
         cp ../vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/default
