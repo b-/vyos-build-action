@@ -86,10 +86,13 @@ jobs:
       - name: Upload release asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          asset=$(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ -name "vyos-${{ env.VERSION }}-*.iso" | xargs)
-          tag_name="v${{ env.VERSION }}"
-          hub release edit -a "$asset" -m "" "$tag_name"
+        run: hub release edit 
+          $(find ./vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso/ 
+            -name "vyos-${{ env.VERSION }}-*.iso" 
+            -printf '-a "%p" '
+            ) 
+          -m "" 
+          "v${{ env.VERSION }}"
 
   delete_old_workflow_runs:
     needs: release
