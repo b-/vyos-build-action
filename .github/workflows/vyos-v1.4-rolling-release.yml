@@ -36,7 +36,7 @@ jobs:
         path: vyos-build-action
       
     - name: Prepare #from vyos-tailscale/Makefile:prepare
-      working-directory: vyos-build-action/vyos-build-action
+      #working-directory: vyos-build-action/vyos-build-action
       run: |
         cp vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
