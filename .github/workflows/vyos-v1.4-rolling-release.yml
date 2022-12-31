@@ -7,11 +7,16 @@ on:
   push:
   workflow_dispatch:
     inputs:
-      debug_enabled:
+      prebuild_debug_enabled:
         type: boolean
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        description: 'debug prebuild (https://github.com/marketplace/actions/debugging-with-tmate)'     
         required: false
-        default: true
+        default: false
+      release_debug_enabled:
+        type: boolean
+        description: 'debug release (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
   
 
 env:
@@ -43,9 +48,9 @@ jobs:
         submodules: 'true'
         
 
-    - name: Setup tmate session
+    - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.debug_enabled ) }}
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}
         
     - name: Prepare #from vyos-tailscale/Makefile:prepare
 
@@ -86,13 +91,18 @@ jobs:
 
           #TODO: add minisign
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
+        
+
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{  env.VERSION  }}
         files: |
-          ${{ env.ISO_T }}
-          ${{ env.ISO_L }}
+          vyos-build/build/${{ env.ISO_T }}
+          vyos-build/build/${{ env.ISO_L }}
             
             
   delete_old_workflow_runs:
