@@ -75,7 +75,7 @@ jobs:
       - name: Release
         uses: fnkr/github-action-ghr@v1
         env:
-          GHR_PATH: build/
+          GHR_PATH: ./vyos-build/build/
           GHR_DELETE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
