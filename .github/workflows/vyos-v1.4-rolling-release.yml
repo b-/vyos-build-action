@@ -41,7 +41,9 @@ jobs:
         echo -----prepare-----
         echo pwd is $(pwd)
         echo -----
-        find .. -maxdepth 3
+        find / -maxdepth 3
+        echo -----
+        set
         echo -----
         cp ../vyos-build-action/vyos-tailscale/tailscale/tailscale.gpg /tmp/tailscale.gpg
 
