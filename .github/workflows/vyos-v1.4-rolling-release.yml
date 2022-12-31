@@ -15,7 +15,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: 1.4-rolling
+  VERSION: 1.4-rolling_bri
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -40,6 +40,11 @@ jobs:
 
           mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
           cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
+          
+          echo "VERSION_T=$VERSION-$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+          echo "VERSION_L=$VERSION-latest" >> $GITHUB_ENV
+          echo "ISO_T=vyos-${VERSION_T}.iso" >> $GITHUB_ENV
+          echo "ISO_L=vyos-${VERSION_L}.iso" >> $GITHUB_ENV
       
       - name: Build ISO
         working-directory: ./vyos-build
@@ -48,37 +53,27 @@ jobs:
             --architecture $ARCHITECTURE
             --build-by $BUILD_BY 
             --build-type $BUILD_TYPE 
-            --version $VERSION-$(date +%Y%m%d%H%M) 
+            --version $VERSION_T
             --custom-apt-key /tmp/tailscale.gpg 
             --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
             --custom-package "tailscale" 
             --custom-package "git"
-            --build-comment "bri's custom VyOS 1.4-rolling" 
-            --build-type release 
-            --version 1.4-rolling-`date +%Y%m%d%H%M`_b-
-        
+            --build-comment "bri's custom VyOS 1.4-rolling"
+            
       - name: Symlink latest
         working-directory: ./vyos-build/build
-        run: ln -s vyos-${{ env.VERSION }}-*.iso vyos-${{ env.VERSION }}-latest.iso
-          
+        run: ln -s $ISO_T $ISO_L
+
           #TODO: add minisign
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: vyos-${{ env.VERSION }}-${{ env.ARCHITECTURE }}-iso
-          path: vyos-build/build/vyos-${{ env.VERSION }}-*.iso
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Release
-        uses: fnkr/github-action-ghr@v1
-        env:
-          GHR_PATH: ./vyos-build/build/
-          GHR_DELETE: true
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.ISO_T }}
+            ${{ env.ISO_L }}
+            
+            
   delete_old_workflow_runs:
     needs: release
     runs-on: ubuntu-latest
