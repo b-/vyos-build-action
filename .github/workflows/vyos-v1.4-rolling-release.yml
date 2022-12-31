@@ -30,12 +30,12 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: vyos/vyos-build
-        path: vyos-build
+        path: ../vyos-build
         
     - name: Checkout vyos-build-action repo
       uses: actions/checkout@v3
       with:
-        path: vyos-build-action
+        path: ../vyos-build-action
       
     - name: Prepare #from vyos-tailscale/Makefile:prepare
       run: |
