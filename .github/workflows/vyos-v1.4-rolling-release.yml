@@ -90,15 +90,13 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
-    - run: mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh
     - name: Add github ssh_config.d file
-      uses: 1arp/create-a-file-action@0.2
-      with:
-        path: 'vyos-build/data/live-build-config/includes.chroot/etc/ssh'
-        file: 'ssh_config'
-        content: |
-          Host *
-            IdentityFile /config/user-data/id_ed25519
+      run: |
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh
+        cat > 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config' <<EOF
+        Host *
+          IdentityFile /config/user-data/id_ed25519
+        EOF  
             
     - name: Build ISO
       working-directory: vyos-build
