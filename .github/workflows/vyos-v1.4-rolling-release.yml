@@ -94,7 +94,7 @@ jobs:
       run: |
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh
         echo "Host *" > 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config'
-        echo "    IdentityFile /config/user-data/id_ed25519" >> 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config
+        echo "    IdentityFile /config/user-data/id_ed25519" >> 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config'
             
     - name: Build ISO
       working-directory: vyos-build
