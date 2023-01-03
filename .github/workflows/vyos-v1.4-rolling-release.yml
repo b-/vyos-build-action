@@ -146,7 +146,7 @@ jobs:
         ./configure && make -j4 && make install
     - name: build minisign
       run: |
-        git clone git@github.com/jedisct1/minisign /tmp/minisign
+        git clone git@github.com:jedisct1/minisign /tmp/minisign
         cd /tmp/minisign
         mkdir -p build
         cd build
