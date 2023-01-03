@@ -138,24 +138,27 @@ jobs:
         MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
-    - name: sign
+    - name: build libsodium
       run: |
-        mkdir /tmp/minisign
+        cd /tmp
+        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
+        cd libsodium-stable
+        ./configure && make -j4 && make install
+    - name: build minisign
+      run: |
+        git clone git@github.com/jedisct1/minisign /tmp/minisign
         cd /tmp/minisign
-        curl -L https://github.com/jedisct1/minisign/releases/download/0.10/minisign-0.10-linux.tar.gz | tar -xzv
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j4 && make install
+        
+    - name: sign build artifacts
+      run: |
         cd /tmp/iso
         set +o pipefail
-          # https://github.com/thomasdesr/minisign-action/blob/13825dacda125941418e63f6338c4f3837cfc2a7/entrypoint.sh#L17
-        (while true ; do echo ; done) | (set -x | minisign-0.10-linux/x86_64/minisign -Sm /tmp/iso/*)
-        # This seems to be the best way to workaround the password prompt
-        # (https://github.com/jedisct1/minisign/issues/43) and because minisign fails if
-        # it can't read from stdin.
-        
-#      uses: thomasdesr/minisign-action@v1
-#      with:
-#        args: -Sm /tmp/iso/*
-#        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY }}
-
+        echo | minisign -Sm /tmp/iso/*
+        set -o pipefail
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
