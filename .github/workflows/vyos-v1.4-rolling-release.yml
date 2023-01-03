@@ -145,8 +145,6 @@ jobs:
         cd libsodium-stable
         ./configure && make -j4 && make install
     - name: clone minisign
-    
-    - name: Checkout vyos-build repo
       uses: actions/checkout@v3
       with:
         repository: git@github.com:jedisct1/minisign
