@@ -12,6 +12,11 @@ on:
         description: 'debug prebuild (https://github.com/marketplace/actions/debugging-with-tmate)'     
         required: false
         default: false
+      minisign_debug_enabled:
+        type: boolean
+        description: 'debug minisign (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
       release_debug_enabled:
         type: boolean
         description: 'debug release (https://github.com/marketplace/actions/debugging-with-tmate)'     
@@ -72,10 +77,14 @@ jobs:
       with:
         path: vyos-build-action
         submodules: 'true'
-        
-
-
-        
+    - name: prebuild tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}     
+    - name: Add minisign key
+      env: 
+        MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
+      run: |
+        printenv MINISIGN_PUBLIC_KEY > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
     - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
       #working-directory: vyos-build-action/vyos-build-action
@@ -93,7 +102,6 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d
         echo "Host *
             IdentityFile /config/user-data/id_ed25519" >> 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d/00-default_key'
-
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
@@ -117,36 +125,57 @@ jobs:
       run: |
         pwd
         ls
-        mkdir -p /tmp/iso
-        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_T
-        file /tmp/iso/$ISO_T
-        ln -s $(pwd)/$ISO_T /tmp/iso/$ISO_L
-        file /tmp/iso/$ISO_T
+        mkdir -vp /tmp/iso
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
+
+    - name: install minisign private key
+      env:
+        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+      run: |
+        mkdir -p $HOME/.minisign
+        printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
+    - name: minisign tmate session
+      env:
+        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
+    - name: build libsodium
+      run: |
+        cd /tmp
+        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
+        cd libsodium-stable
+        ./configure && make -j4 && make install
+    - name: clone minisign
+      uses: actions/checkout@v3
+      with:
+        repository: jedisct1/minisign
+        path: minisign
+    - name: build minisign
+      working-directory: minisign
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j4 && make install
         
+    - name: sign build artifacts
+      run: |
+        cd /tmp/iso
+        set +o pipefail
+        echo | minisign -Sm /tmp/iso/*
+        set -o pipefail
 
-          #TODO: add minisign
-
-    - name: Setup tmate session
+    - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
         
-
-    
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{  env.VERSION_T  }}
         files: "/tmp/iso/*"
-        
-#        vyos-build/build/${{ env.ISO_T }}
-#        vyos-build/build/${{ env.ISO_L }}
-
-#    - name: Release
-#      uses: ncipollo/release-action@v1
-#      with:
-#        tag: ${{ env.ISO_T }}
-#        artifacts: "/tmp/iso/*"
-            
+                    
             
   delete_old_workflow_runs:
     needs: build
