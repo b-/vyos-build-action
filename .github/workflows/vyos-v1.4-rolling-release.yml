@@ -85,7 +85,6 @@ jobs:
         MINISIGN_PUBLIC_KEY: ${{ secrets.MINISIGN_PUBLIC_KEY }}
       run: |
         printenv MINISIGN_PUBLIC_KEY > vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/keys/vyos-release.minisign.pub
-                
     - name: Add Tailscale files #from vyos-tailscale/Makefile:prepare
 
       #working-directory: vyos-build-action/vyos-build-action
@@ -98,6 +97,11 @@ jobs:
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/tailscaled.service.d/override.conf
           
+    - name: Add ssh_config.d/00-default_key file
+      run: |
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d
+        echo "Host *
+            IdentityFile /config/user-data/id_ed25519" >> 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d/00-default_key'
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
@@ -113,6 +117,7 @@ jobs:
           --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
           --custom-package "tailscale" 
           --custom-package "git"
+          --custom-package "vim"
           --build-comment "bri's custom VyOS 1.4-rolling"
             
     - name: move into position 
@@ -123,10 +128,6 @@ jobs:
         mkdir -vp /tmp/iso
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
         ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
-            
-
-    #TODOING: add minisign
-
     - name: install minisign private key
       env:
         MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
@@ -166,12 +167,41 @@ jobs:
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
+    - name: build libsodium
+      run: |
+        cd /tmp
+        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
+        cd libsodium-stable
+        ./configure && make -j4 && make install
+    - name: clone minisign
+      uses: actions/checkout@v3
+      with:
+        repository: jedisct1/minisign
+        path: minisign
+    - name: build minisign
+      working-directory: minisign
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j4 && make install
         
+    - name: sign build artifacts
+      run: |
+        cd /tmp/iso
+        set +o pipefail
+        echo | minisign -Sm /tmp/iso/*
+        set -o pipefail
+
+    - name: pre-release tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
+       
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{  env.VERSION_BRANCH  }}
+        tag_name: v${{  env.VERSION_T  }}
         files: "/tmp/iso/*"
                     
             
