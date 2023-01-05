@@ -100,8 +100,18 @@ jobs:
     - name: Add ssh_config.d/00-default_key.conf file
       run: |
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d
-        echo "Host *
-            IdentityFile /config/user-data/id_ed25519" >> 'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d/00-default_key.conf'
+        >'vyos-build/data/live-build-config/includes.chroot/etc/ssh/ssh_config.d/00-default_key.conf' cat<<EOF
+        Host *
+            IdentityFile /config/user-data/id_ed25519
+        EOF
+          
+    - name: Add /etc/gitconfig
+      run: |
+        >'vyos-build/data/live-build-config/includes.chroot/etc/gitconfig' cat<<EOF
+        [core]
+                sshCommand = ssh -o StrictHostKeyChecking=no
+        EOF
+        
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
