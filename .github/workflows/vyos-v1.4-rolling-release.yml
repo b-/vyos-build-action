@@ -155,6 +155,7 @@ jobs:
         echo '-----END PGP PUBLIC KEY BLOCK-----' >>/tmp/zt-gpg-key
         mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/zerotier-one.service.d vyos-build/data/live-build-config/includes.chroot/var/lib/
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/zerotier-one.service.d/override.conf
+        mkdir -p /config/user-data/zerotier-one # this is a hack to prevent a file not found error https://github.com/b-/vyos-build-action/actions/runs/3853685758/jobs/6566902991#step:15:35
         ln -s /config/user-data/zerotier-one vyos-build/data/live-build-config/includes.chroot/var/lib/zerotier-one
         
 
