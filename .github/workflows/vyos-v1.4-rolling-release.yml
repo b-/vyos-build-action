@@ -187,7 +187,7 @@ jobs:
           --custom-apt-entry "deb https://pkgs.tailscale.com/stable/debian bullseye main" 
           --custom-package "tailscale" 
           --custom-apt-key /tmp/zt-gpg-key
-          --custom-apt-entry "deb ${ZT_BASE_URL_HTTP}debian/bullseye bullseye main"
+          --custom-apt-entry "deb https://download.zerotier.com/debian/bullseye bullseye main"
           --custom-package "zerotier-one"
           --custom-package "git"
           --custom-package "vim"
