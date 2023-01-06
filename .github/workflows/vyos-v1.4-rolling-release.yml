@@ -239,6 +239,7 @@ jobs:
         set +o pipefail
         echo | minisign -Sm /tmp/iso/*
         set -o pipefail
+        rm -f /tmp/iso/*.minisig.minisig
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
