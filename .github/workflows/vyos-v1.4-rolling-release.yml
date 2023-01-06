@@ -153,6 +153,7 @@ jobs:
         =JgAv
         END_OF_KEY
         echo '-----END PGP PUBLIC KEY BLOCK-----' >>/tmp/zt-gpg-key
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/zerotier-one.service.d vyos-build/data/live-build-config/includes.chroot/var/lib/
         cp vyos-build-action/vyos-tailscale/tailscale/override.conf vyos-build/data/live-build-config/includes.chroot/etc/systemd/system/zerotier-one.service.d/override.conf
         ln -s /config/user-data/zerotier-one vyos-build/data/live-build-config/includes.chroot/var/lib/zerotier-one
         
