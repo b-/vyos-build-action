@@ -193,6 +193,7 @@ jobs:
           --custom-package "zerotier-one"
           --custom-package "git"
           --custom-package "vim"
+          --custom-package "jq"
           --build-comment "bri's custom VyOS 1.4-rolling"
             
     - name: move into position 
