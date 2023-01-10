@@ -193,6 +193,7 @@ jobs:
           --custom-package "zerotier-one"
           --custom-package "git"
           --custom-package "vim"
+          --custom-package "jq"
           --build-comment "bri's custom VyOS 1.4-rolling"
             
     - name: move into position 
@@ -239,7 +240,6 @@ jobs:
         set +o pipefail
         echo | minisign -Sm /tmp/iso/*
         set -o pipefail
-        rm -f /tmp/iso/*.minisig.minisig
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
@@ -250,29 +250,6 @@ jobs:
         curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
         cd libsodium-stable
         ./configure && make -j4 && make install
-    - name: clone minisign
-      uses: actions/checkout@v3
-      with:
-        repository: jedisct1/minisign
-        path: minisign
-    - name: build minisign
-      working-directory: minisign
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        make -j4 && make install
-        
-    - name: sign build artifacts
-      run: |
-        cd /tmp/iso
-        set +o pipefail
-        echo | minisign -Sm /tmp/iso/*
-        set -o pipefail
-
-    - name: pre-release tmate session
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}
        
     - name: Release
       uses: softprops/action-gh-release@v1
