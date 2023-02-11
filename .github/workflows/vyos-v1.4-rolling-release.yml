@@ -179,7 +179,7 @@ jobs:
       run: |
         set -x
         mkdir -p 'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d'
-        >'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' <<'EOF'
+        tee 'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' <<'EOF'
         #!/bin/bash
         #
         # Run user dhclient-exit-hooks
