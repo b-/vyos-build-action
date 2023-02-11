@@ -177,6 +177,7 @@ jobs:
         
     - name: Add /etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks
       run: |
+        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d
         >'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' cat<<EOF
         #!/bin/bash
         #
