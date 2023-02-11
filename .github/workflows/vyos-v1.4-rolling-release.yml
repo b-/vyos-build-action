@@ -177,8 +177,8 @@ jobs:
         
     - name: Add /etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks
       run: |
-        mkdir -p vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d
-        >'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' cat<<EOF
+        mkdir -p 'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d'
+        >'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' <<'EOF'
         #!/bin/bash
         #
         # Run user dhclient-exit-hooks
@@ -187,7 +187,7 @@ jobs:
             run-parts "${DHCP_POST_HOOKS}"
         fi
         EOF
-        chmod +x /etc/dhcp/dhclient-exit-hooks.d/99-run-user-hook
+        chmod +x vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hook
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
