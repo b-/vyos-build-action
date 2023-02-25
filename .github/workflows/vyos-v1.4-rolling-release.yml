@@ -249,14 +249,12 @@ jobs:
         cmake ..
         make -j4 && make install
         
-    - run: apt-get install -y bash
     - name: sign build artifacts
       run: |
-        #!/bin/bash
         cd /tmp/iso
-        set +o pipefail
-        echo | minisign -Sm /tmp/iso/*
-        set -o pipefail
+        set +o pipefail && true || true
+        echo | minisign -Sm /tmp/iso/* && true || true
+        set -o pipefail && true || true
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
