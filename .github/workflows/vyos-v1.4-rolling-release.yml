@@ -249,8 +249,10 @@ jobs:
         cmake ..
         make -j4 && make install
         
+    - run: apt-get install -y bash
     - name: sign build artifacts
       run: |
+        #!/bin/bash
         cd /tmp/iso
         set +o pipefail
         echo | minisign -Sm /tmp/iso/*
