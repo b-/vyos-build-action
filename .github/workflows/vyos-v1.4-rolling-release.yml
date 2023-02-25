@@ -223,7 +223,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         # Artifact name
-        name: ${{ env.ISO_T }}
+        name: ${{ env.ISO_T }}.zip
         # A file, directory or wildcard pattern that describes what to upload
         path: /tmp/iso/${{ env.ISO_T }}
         retention-days: 90
@@ -233,47 +233,54 @@ jobs:
       run: |
         mkdir -p $HOME/.minisign
         printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
-    - name: minisign tmate session
-      env:
-        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
-    - name: build libsodium
-      run: |
-        cd /tmp
-        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
-        cd libsodium-stable
-        ./configure && make -j4 && make install
-    - name: clone minisign
-      uses: actions/checkout@v3
+
+
+    - name: Sign images
+      uses: thomasdesr/minisign-action@v1
       with:
-        repository: jedisct1/minisign
-        path: minisign
-    - name: build minisign
-      working-directory: minisign
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        make -j4 && make install
-        
-    - name: sign build artifacts
-      run: |
-        cd /tmp/iso
-        set +o pipefail && true || true
-        echo | minisign -Sm /tmp/iso/* && true || true
-        set -o pipefail && true || true
+        args: -Sm /tmp/iso/${{ env.ISO_T }} /tmp/iso/${{  env.ISO_T  }}
+        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+          #        password: ${{ secrets.minisign_password }}
+    - name: Upload the signature
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ env.ISO_T }}.zip
+        path: /tmp/iso/${{  env.ISO_T  }}.minisig
+
+        #    - name: minisign tmate session
+        #      env:
+        #        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+        #      uses: mxschmitt/action-tmate@v3
+        #      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
+        #    - name: build libsodium
+        #      run: |
+        #        cd /tmp
+        #        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
+        #        cd libsodium-stable
+        #        ./configure && make -j4 && make install
+        #    - name: clone minisign
+        #      uses: actions/checkout@v3
+        #      with:
+        #        repository: jedisct1/minisign
+        #        path: minisign
+        #    - name: build minisign
+        #      working-directory: minisign
+        #      run: |
+        #        mkdir -p build
+        #        cd build
+        #        cmake ..
+        #        make -j4 && make install
+        #        
+        #    - name: sign build artifacts
+        #      run: |
+        #        cd /tmp/iso
+        #        set +o pipefail && true || true
+        #        echo | minisign -Sm /tmp/iso/* && true || true
+        #        set -o pipefail && true || true
 
     - name: pre-release tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
-    - name: build libsodium
-      run: |
-        cd /tmp
-        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
-        cd libsodium-stable
-        ./configure && make -j4 && make install
-       
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
