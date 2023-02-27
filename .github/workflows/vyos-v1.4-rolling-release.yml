@@ -210,6 +210,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    - name: Set variables
+      run: |
+        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
+        export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
+        export VERSION_L=${VERSION_BRANCH}-latest
+        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo -----
+        echo Now, my variables are:
+        cat $GITHUB_ENV
+        echo -----
+      
     - uses: actions/download-artifact@v3
       with:
         name: ${{ env.ISO_T }}.zip
