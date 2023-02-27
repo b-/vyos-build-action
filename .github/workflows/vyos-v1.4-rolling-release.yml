@@ -202,8 +202,10 @@ jobs:
         pwd
         ls
         mkdir -vp /tmp/iso
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T ../../$ISO_T
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L ../../$ISO_L
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
+        ln -vs $(pwd)/$ISO_T ../../$ISO_L
+        ln -vs $(pwd)/$ISO_T ../../$ISO_T
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
