@@ -173,22 +173,7 @@ jobs:
         [core]
                 sshCommand = ssh -o StrictHostKeyChecking=no
         EOF
-        
-        
-    - name: Add /etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks
-      run: |
-        set -x
-        mkdir -p 'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d'
-        tee 'vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks' <<'EOF'
-        #!/bin/bash
-        #
-        # Run user dhclient-exit-hooks
-        DHCP_POST_HOOKS="/config/scripts/dhcp-client/post-hooks.d/"
-        if [ -d "${DHCP_POST_HOOKS}" ] ; then
-            run-parts "${DHCP_POST_HOOKS}"
-        fi
-        EOF
-        chmod +x vyos-build/data/live-build-config/includes.chroot/etc/dhcp/dhclient-exit-hooks.d/99-run-user-hooks
+       
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
@@ -227,24 +212,18 @@ jobs:
         # A file, directory or wildcard pattern that describes what to upload
         path: /tmp/iso/${{ env.ISO_T }}
         retention-days: 90
-    - name: install minisign private key
-      env:
-        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
-      run: |
-        mkdir -p $HOME/.minisign
-        printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
 
 
     - name: Sign images
       uses: thomasdesr/minisign-action@v1
       with:
-        args: -Sm /tmp/iso/${{ env.ISO_T }} /tmp/iso/${{  env.ISO_T  }}
+        args: -Sm /tmp/iso/${{ env.ISO_T }}
         minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
           #        password: ${{ secrets.minisign_password }}
     - name: Upload the signature
       uses: actions/upload-artifact@v1
       with:
-        name: ${{ env.ISO_T }}.zip
+        name: ${{ env.ISO_T }}.minisign.zip
         path: /tmp/iso/${{  env.ISO_T  }}.minisig
 
         #    - name: minisign tmate session
