@@ -202,8 +202,8 @@ jobs:
         pwd
         ls
         mkdir -vp /tmp/iso
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T ../../$ISO_T
+        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L ../../$ISO_L
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
@@ -217,7 +217,7 @@ jobs:
     - name: Sign images
       uses: thomasdesr/minisign-action@v1
       with:
-        args: -Sm /tmp/iso/${{ env.ISO_T }}
+        args: -Sm ${{ env.ISO_T }}
         minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
           #        password: ${{ secrets.minisign_password }}
     - name: Upload the signature
