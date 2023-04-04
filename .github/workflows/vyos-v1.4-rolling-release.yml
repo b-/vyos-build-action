@@ -260,7 +260,11 @@ jobs:
       with:
         name: ${{ env.ISO_T }}.minisig.zip
         path: /tmp/iso/${{  env.ISO_T  }}.minisig
-
+ 
+    - name: release tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}      
+      
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
