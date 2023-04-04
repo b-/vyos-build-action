@@ -200,7 +200,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         # Artifact name
-        name: ${{ env.ISO_T }}.zip
+        name: vyos.iso.zip
         # A file, directory or wildcard pattern that describes what to upload
         path: ./vyos-build/build/${{ env.ISO_T }}
         retention-days: 90
@@ -227,7 +227,7 @@ jobs:
       
     - uses: actions/download-artifact@v3
       with:
-        name: ${{ env.ISO_T }}.zip
+        name: vyos.iso.zip
         
     - name: Display structure of downloaded files
       run: ls -R
