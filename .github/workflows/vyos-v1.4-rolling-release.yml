@@ -187,6 +187,8 @@ jobs:
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
+      
+      
     - name: Build ISO
       working-directory: vyos-build
       run: 
@@ -228,6 +230,15 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: my-env.txt.zip
+        
+    
+        
+    - name: prebuild tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}     
+      
+      
+        
     - name: Set variables
       run: <my-env.txt | tee -a $GITHUB_ENV
       
