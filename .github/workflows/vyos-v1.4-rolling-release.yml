@@ -259,7 +259,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: ${{ env.ISO_T }}.minisig.zip
-        path: /tmp/iso/${{  env.ISO_T  }}.minisig
+        path: ${{  env.ISO_T  }}.minisig
  
     - name: release tmate session
       uses: mxschmitt/action-tmate@v3
@@ -269,7 +269,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{  env.VERSION_BRANCH  }}
-        files: "/tmp/iso/*"
+        files: "*iso*"
                     
             
   delete_old_workflow_runs:
