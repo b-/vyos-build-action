@@ -54,27 +54,25 @@ jobs:
     - name: Set variables
       run: |
         export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
-        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" | tee -a my-env.txt >> $GITHUB_ENV
         export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
         export VERSION_L=${VERSION_BRANCH}-latest
-        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
-        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
-        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "VERSION_T=${VERSION_T}" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" | tee -a my-env.txt >> $GITHUB_ENV
         echo -----
         echo Now, my variables are:
         cat $GITHUB_ENV
         echo -----
         
-                
-    - run: echo '${ISO_T}' > isoname.txt
-    - name: Upload ISO filename
+    - name: Upload my-env.txt
       uses: actions/upload-artifact@v3.1.2
       with:
         # Artifact name
-        name: isoname.txt.zip
+        name: my-env.txt.zip
         # A file, directory or wildcard pattern that describes what to upload
-        path: isoname.txt
+        path: my-env.txt
         retention-days: 1
 
       
@@ -226,20 +224,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+    
+    - uses: actions/download-artifact@v3
+      with:
+        name: my-env.txt.zip
     - name: Set variables
-      run: |
-        export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
-        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
-        export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
-        export VERSION_L=${VERSION_BRANCH}-latest
-        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
-        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
-        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        echo -----
-        echo Now, my variables are:
-        cat $GITHUB_ENV
-        echo -----
+      run: <my-env.txt | tee -a $GITHUB_ENV
       
     - uses: actions/download-artifact@v3
       with:
