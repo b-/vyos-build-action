@@ -240,7 +240,7 @@ jobs:
       
         
     - name: Set variables
-      run: <my-env.txt | tee -a $GITHUB_ENV
+      run: cat my-env.txt >> $GITHUB_ENV
       
     - uses: actions/download-artifact@v3
       with:
