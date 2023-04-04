@@ -65,6 +65,18 @@ jobs:
         echo Now, my variables are:
         cat $GITHUB_ENV
         echo -----
+        
+                
+    - run: echo '${ISO_T}' > isoname.txt
+    - name: Upload ISO filename
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        # Artifact name
+        name: isoname.txt.zip
+        # A file, directory or wildcard pattern that describes what to upload
+        path: isoname.txt
+        retention-days: 1
+
       
     - name: Checkout vyos-build repo
       uses: actions/checkout@v3
@@ -195,8 +207,10 @@ jobs:
           --custom-package "vim"
           --custom-package "jq"
           --build-comment "bri's custom VyOS 1.4-rolling"
-            
-    - name: Upload a Build Artifact
+    
+
+    
+    - name: Upload ISO
       uses: actions/upload-artifact@v3.1.2
       with:
         # Artifact name
@@ -204,6 +218,8 @@ jobs:
         # A file, directory or wildcard pattern that describes what to upload
         path: ./vyos-build/build/${{ env.ISO_T }}
         retention-days: 90
+
+    
 
 
   sign:
