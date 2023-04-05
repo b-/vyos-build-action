@@ -54,17 +54,27 @@ jobs:
     - name: Set variables
       run: |
         export VERSION_BRANCH="${{ steps.branch-filename.outputs.value }}"
-        echo "VERSION_BRANCH=${VERSION_BRANCH}" >> $GITHUB_ENV
+        echo "VERSION_BRANCH=${VERSION_BRANCH}" | tee -a my-env.txt >> $GITHUB_ENV
         export VERSION_T=${VERSION_BRANCH}-$(date +%Y%m%d%H%M)
         export VERSION_L=${VERSION_BRANCH}-latest
-        echo "VERSION_T=${VERSION_T}" >> $GITHUB_ENV
-        echo "VERSION_L=${VERSION_L}" >> $GITHUB_ENV
-        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
-        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" >> $GITHUB_ENV
+        echo "VERSION_T=${VERSION_T}" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "VERSION_L=${VERSION_L}" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "ISO_T=vyos-${VERSION_T}-${ARCHITECTURE}.iso" | tee -a my-env.txt >> $GITHUB_ENV
+        echo "ISO_L=vyos-${VERSION_L}-${ARCHITECTURE}.iso" | tee -a my-env.txt >> $GITHUB_ENV
         echo -----
         echo Now, my variables are:
         cat $GITHUB_ENV
         echo -----
+        
+    - name: Upload my-env.txt
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        # Artifact name
+        name: my-env.txt.zip
+        # A file, directory or wildcard pattern that describes what to upload
+        path: my-env.txt
+        retention-days: 1
+
       
     - name: Checkout vyos-build repo
       uses: actions/checkout@v3
@@ -173,10 +183,12 @@ jobs:
         [core]
                 sshCommand = ssh -o StrictHostKeyChecking=no
         EOF
-        
+       
     - name: prebuild tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.prebuild_debug_enabled ) }}      
+      
+      
     - name: Build ISO
       working-directory: vyos-build
       run: 
@@ -195,67 +207,69 @@ jobs:
           --custom-package "vim"
           --custom-package "jq"
           --build-comment "bri's custom VyOS 1.4-rolling"
-            
-    - name: move into position 
-      working-directory: ./vyos-build/build
-      run: |
-        pwd
-        ls
-        mkdir -vp /tmp/iso
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_T
-        ln -vs $(pwd)/$ISO_T /tmp/iso/$ISO_L
-    - name: install minisign private key
-      env:
-        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
-      run: |
-        mkdir -p $HOME/.minisign
-        printenv MINISIGN_PRIVATE_KEY  > $HOME/.minisign/minisign.key
-    - name: minisign tmate session
-      env:
-        MINISIGN_PRIVATE_KEY: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
-      uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
-    - name: build libsodium
-      run: |
-        cd /tmp
-        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
-        cd libsodium-stable
-        ./configure && make -j4 && make install
-    - name: clone minisign
-      uses: actions/checkout@v3
-      with:
-        repository: jedisct1/minisign
-        path: minisign
-    - name: build minisign
-      working-directory: minisign
-      run: |
-        mkdir -p build
-        cd build
-        cmake ..
-        make -j4 && make install
-        
-    - name: sign build artifacts
-      run: |
-        cd /tmp/iso
-        set +o pipefail
-        echo | minisign -Sm /tmp/iso/*
-        set -o pipefail
+    
 
-    - name: pre-release tmate session
+    
+    - name: Upload ISO
+      uses: actions/upload-artifact@v3.1.2
+      with:
+        # Artifact name
+        name: vyos.iso.zip
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ./vyos-build/build/${{ env.ISO_T }}
+        retention-days: 90
+
+    
+
+
+  sign:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/download-artifact@v3
+      with:
+        name: my-env.txt.zip
+        
+    
+        
+    - name: minisign tmate session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}
-    - name: build libsodium
-      run: |
-        cd /tmp
-        curl -L https://download.libsodium.org/libsodium/releases/LATEST.tar.gz | tar -zxv
-        cd libsodium-stable
-        ./configure && make -j4 && make install
-       
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.minisign_debug_enabled ) }}     
+      
+      
+        
+    - name: Set variables
+      run: cat my-env.txt >> $GITHUB_ENV
+      
+    - uses: actions/download-artifact@v3
+      with:
+        name: vyos.iso.zip
+        
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    - name: Sign images
+      uses: thomasdesr/minisign-action@v1
+      with:
+        args: -Sm ${{ env.ISO_T }}
+        minisign_key: ${{ secrets.MINISIGN_PRIVATE_KEY  }}
+          #        password: ${{ secrets.minisign_password }}
+    - name: Upload the signature
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{ env.ISO_T }}.minisig.zip
+        path: ${{  env.ISO_T  }}.minisig
+ 
+    - name: release tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ ( github.event_name == 'workflow_dispatch' && inputs.release_debug_enabled ) }}      
+      
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{  env.VERSION_BRANCH  }}
-        files: "/tmp/iso/*"
+        files: "*iso*"
                     
             
   delete_old_workflow_runs:
