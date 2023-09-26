@@ -1,4 +1,4 @@
-name: VyOS v1.4 Rolling Release
+name: VyOS v1.5 Rolling Release
 
 on:
   schedule:
@@ -29,7 +29,7 @@ env:
   ARCHITECTURE: amd64
   BUILD_BY: vyos-build-action@github.com
   BUILD_TYPE: release
-  VERSION: 1.4-rolling_bri
+  VERSION: 1.5-rolling_bri
   DEBIAN_MIRROR: http://ftp.us.debian.org/debian/
 
 jobs:
@@ -206,7 +206,7 @@ jobs:
           --custom-package "git"
           --custom-package "vim"
           --custom-package "jq"
-          --build-comment "bri's custom VyOS 1.4-rolling"
+          --build-comment "bri's custom VyOS ${{ env.VERSION }}"
     
 
     
